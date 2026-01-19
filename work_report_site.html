@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Work Report System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #344E41 0%, #3A5A40 100%);
+            height: 100vh;
+            overflow: hidden;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            text-align: center;
+            color: #DAD7CD;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 15px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .form-section, .report-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            overflow-y: auto;
+            max-height: 100%;
+        }
+
+        .form-section h2, .report-section h2 {
+            color: #344E41;
+            margin-bottom: 12px;
+            font-size: 1.3em;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #A3B18A;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #588157;
+        }
+
+        button.submit-btn, button.copy-btn {
+            width: 100%;
+            padding: 10px;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 8px;
+        }
+
+        button.submit-btn {
+            background: #588157;
+        }
+
+        button.copy-btn {
+            background: #3A5A40;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .report-output {
+            background: #DAD7CD;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            font-size: 13px;
+            min-height: 200px;
+            max-height: 350px;
+            overflow-y: auto;
+            border: 2px solid #A3B18A;
+            margin-top: 10px;
+        }
+
+        .entries-list {
+            background: #DAD7CD;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .entry-item {
+            margin-bottom: 8px;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            border-left: 4px solid #588157;
+        }
+
+        .entry-details {
+            flex: 1;
+        }
+
+        .delete-btn {
+            padding: 4px 8px;
+            background: #344E41;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .delete-btn:hover {
+            background: #3A5A40;
+        }
+
+        .time-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 2px solid #A3B18A;
+        }
+
+        .device-tag {
+            background: #588157;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .device-tag .remove-tag {
+            cursor: pointer;
+            font-weight: bold;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+        }
+
+        .device-tag .remove-tag:hover {
+            background: rgba(255,255,255,0.5);
+        }
+
+        .suggestions-dropdown {
+            display: none;
+            position: absolute;
+            background: white;
+            border: 2px solid #588157;
+            border-radius: 6px;
+            max-height: 150px;
+            overflow-y: auto;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .suggestions-dropdown div {
+            padding: 8px;
+            cursor: pointer;
+            border-bottom: 1px solid #DAD7CD;
+            transition: background 0.2s;
+            font-size: 13px;
+        }
+
+        .suggestions-dropdown div:hover,
+        .suggestions-dropdown div.highlighted {
+            background: #DAD7CD;
+        }
+
+        .suggestions-dropdown div:last-child {
+            border-bottom: none;
+        }
+
+        .suggestions-dropdown div strong {
+            color: #588157;
+        }
+
+        #selectedDevices {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #DAD7CD;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #588157;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3A5A40;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 Daily Work Report System</h1>
+
+        <div class="main-content">
+            <div class="form-section">
+                <h2>Submit Entry</h2>
+                <form id="reportForm">
+                    <div class="form-group">
+                        <label for="ispName">ISP/Company Name *</label>
+                        <input type="text" id="ispName" placeholder="e.g., SOL BD" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phoneNumber">Contact Number *</label>
+                        <input type="tel" id="phoneNumber" placeholder="e.g., 01713807638" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="deviceModel">Device Model * (Type & press Enter)</label>
+                        <div style="position: relative;">
+                            <input type="text" id="deviceModelInput" placeholder="Start typing: G, P, S..." autocomplete="off">
+                            <div id="deviceSuggestions" class="suggestions-dropdown"></div>
+                        </div>
+                        <div id="selectedDevices"></div>
+                        <input type="hidden" id="deviceModel" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="problemStatus">Problem Status *</label>
+                        <div style="position: relative;">
+                            <input type="text" id="problemStatus" placeholder="Start typing status..." autocomplete="off" required>
+                            <div id="statusSuggestions" class="suggestions-dropdown"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location">Location</label>
+                        <input type="text" id="location" placeholder="e.g., Dhaka">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="deviceSN">Device SN</label>
+                        <input type="text" id="deviceSN" placeholder="e.g., SN123456">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="salesPerson">Sales Person</label>
+                        <div style="position: relative;">
+                            <input type="text" id="salesPerson" placeholder="Start typing name..." autocomplete="off">
+                            <div id="salesSuggestions" class="suggestions-dropdown"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="engineerName">Engineer Name</label>
+                        <div style="position: relative;">
+                            <input type="text" id="engineerName" placeholder="Start typing name..." autocomplete="off">
+                            <div id="engineerSuggestions" class="suggestions-dropdown"></div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Add Entry</button>
+                </form>
+
+                <div class="time-section">
+                    <div class="form-group">
+                        <label for="workDate">Work Date</label>
+                        <input type="date" id="workDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginTime">Login Time</label>
+                        <input type="time" id="loginTime" value="10:15">
+                    </div>
+                    <div class="form-group">
+                        <label for="logoutTime">Logout Time</label>
+                        <input type="time" id="logoutTime" value="18:45">
+                    </div>
+                </div>
+            </div>
+
+            <div class="report-section">
+                <h2>Your Report</h2>
+                <button class="copy-btn" onclick="copyReport()">📋 Copy Daily Report</button>
+                <button class="copy-btn" onclick="downloadExcel()">📥 Download CSV File</button>
+                
+                <div class="entries-list" id="entriesList">
+                    <div style="text-align: center; padding: 15px; color: #666; font-size: 13px;">No entries yet</div>
+                </div>
+                
+                <div class="report-output" id="reportOutput">Date: 
+LOGIN: 
+No entries yet.
+LOGOUT: </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let entries = [];
+
+        const deviceModels = [
+            'P3608-2TE', 'P3612-2TE', 'P3616-2TE', 'GP3600-08', 'GP3600-16',
+            'P3608B', 'GP3600-04', 'GP3600-08B', 'GP3600-16B', 'GP3600-08D',
+            'GP3600-04D', 'GP3600-04L', 'P3310C', 'P3310D', 'GP6606-06',
+            'GP6606-10', 'GP8600-16', 'P3600-04', 'P3600-08', 'GP3600-04C',
+            'P3600-08E', 'P3600-16E', 'GP3600-08C', 'GP3600-16', 'P3310B', 'P3310',
+            'S2510PB', 'S2518PB', 'S2528P', 'S2510-B', 'S2528-B', 'S2210PB', 'S2210-B',
+            'S2226PB', 'S2218PB', 'S2228-B', 'S2528-C', 'S2510-C', 'S2520-P', 'S2528-P',
+            'S2510-P', 'S2226-P', 'S2500-24P4C', 'S2500-24T4S', 'S2500-8T2S',
+            'S5700-48ET4X2Q', 'S5700-48ET4X2QB', 'S5800-24X2C', 'S2900-24T4X', 'S2928E',
+            'S2900-8T4X', 'S2900-24P4X', 'S2928-P', 'S2912E', 'S2900-24S8C4X', 'S2928EF',
+            'S5828', 'S3740', 'S3740F', 'S3756', 'S3756F', 'S3756M', 'S3756P', 'S2928F',
+            'S5612', 'S2956', 'S3940F', 'S3900-48S4C8X', 'S5864H', 'S3930', 'S3938F',
+            'S3900-24T6X', 'S3900-24S8T6X', 'S3954', 'S3954M', 'S3900-48M6X', 'S2954',
+            'S2954-P', 'S2900-48T6X', 'S2900-48T4X', 'S3900-24T6X', 'S3900-48T6X',
+            'S2900-48P6X', 'S3900-48P6X', 'S5700-24ET6X', 'S2900-48S6X', 'S2900-24P6X',
+            'S5864H B', 'S5800-48X8C-S', 'S5800-48Y8C-S', 'S5800-32C2X-S', 'S5800-S Series',
+            'S2936F', 'S2952P', 'S2952C', 'S2548GX', 'S2510P', 'S2528GX', 'S2928',
+            'S5864', 'S2226I', 'S2226IB', 'S2928C', 'S2928P'
+        ].sort();
+
+        const salesPersons = [
+            'Afroza Akter', 'Amirul Islam', 'Imran Hossain', 'KAMAL HOSSAIN', 
+            'KRISHNA', 'M A Hannan', 'MD ALAMGIR', 'MD AMIRUL ISLAM', 'MD JAHANGIR ALAM', 
+            'MD KAMAL HOSSAIN', 'MD MAHBUB', 'MD ZUBAIR', 'MD. ABDUL HANNAN', 
+            'MD. Jahangir Alam', 'MEHEDI HASAN', 'MR AMIT SHAH', 'MR EVANCE NICHOLAS', 
+            'MR SHUMON', 'MR TOPU', 'MR.SOHAG', 'Mr Sabbir', 'NAZMUL HASAN'
+        ].sort();
+
+        const engineerNames = ['Tapu', 'Al-Amin', 'Sourav'].sort();
+        
+        const problemStatuses = ['Solved', 'Pending', 'Not Solved', 'Hardware issue', 'Waiting for feedback'].sort();
+
+        let selectedDevices = [];
+        let currentHighlightIndex = -1;
+        let currentActiveDropdown = null;
+
+        // Device Model Autocomplete
+        const deviceInput = document.getElementById('deviceModelInput');
+        const deviceSuggestionsDiv = document.getElementById('deviceSuggestions');
+        const selectedDevicesDiv = document.getElementById('selectedDevices');
+        const hiddenDeviceInput = document.getElementById('deviceModel');
+
+        deviceInput.addEventListener('input', function() {
+            const value = this.value.trim().toUpperCase();
+            
+            if (value.length === 0) {
+                deviceSuggestionsDiv.style.display = 'none';
+                currentHighlightIndex = -1;
+                return;
+            }
+
+            const filtered = deviceModels.filter(model => 
+                model.toUpperCase().startsWith(value)
+            );
+
+            if (filtered.length > 0) {
+                currentActiveDropdown = 'device';
+                currentHighlightIndex = -1;
+                const limitedResults = filtered.slice(0, 15);
+                deviceSuggestionsDiv.innerHTML = limitedResults.map((model, index) => {
+                    const matchPart = model.substring(0, value.length);
+                    const restPart = model.substring(value.length);
+                    return `<div data-index="${index}" onclick="addDevice('${model}')"><strong>${matchPart}</strong>${restPart}</div>`;
+                }).join('');
+                deviceSuggestionsDiv.style.display = 'block';
+            } else {
+                deviceSuggestionsDiv.style.display = 'none';
+                currentHighlightIndex = -1;
+            }
+        });
+
+        deviceInput.addEventListener('keydown', function(e) {
+            const items = deviceSuggestionsDiv.querySelectorAll('div');
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (items.length > 0) {
+                    currentHighlightIndex = (currentHighlightIndex + 1) % items.length;
+                    updateHighlight(items);
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (items.length > 0) {
+                    currentHighlightIndex = currentHighlightIndex <= 0 ? items.length - 1 : currentHighlightIndex - 1;
+                    updateHighlight(items);
+                }
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (currentHighlightIndex >= 0 && items[currentHighlightIndex]) {
+                    items[currentHighlightIndex].click();
+                } else {
+                    const value = this.value.toUpperCase().trim();
+                    const exactMatch = deviceModels.find(model => 
+                        model.toUpperCase() === value
+                    );
+                    
+                    if (exactMatch) {
+                        addDevice(exactMatch);
+                    } else if (value) {
+                        addDevice(value);
+                    }
+                }
+            }
+        });
+
+        // Sales Person Autocomplete
+        const salesInput = document.getElementById('salesPerson');
+        const salesSuggestionsDiv = document.getElementById('salesSuggestions');
+
+        salesInput.addEventListener('input', function() {
+            const value = this.value.trim();
+            
+            if (value.length === 0) {
+                salesSuggestionsDiv.style.display = 'none';
+                currentHighlightIndex = -1;
+                return;
+            }
+
+            const filtered = salesPersons.filter(person => 
+                person.toUpperCase().startsWith(value.toUpperCase())
+            );
+
+            if (filtered.length > 0) {
+                currentActiveDropdown = 'sales';
+                currentHighlightIndex = -1;
+                const limitedResults = filtered.slice(0, 15);
+                salesSuggestionsDiv.innerHTML = limitedResults.map((person, index) => {
+                    const matchPart = person.substring(0, value.length);
+                    const restPart = person.substring(value.length);
+                    return `<div data-index="${index}" onclick="selectSalesPerson('${person}')"><strong>${matchPart}</strong>${restPart}</div>`;
+                }).join('');
+                salesSuggestionsDiv.style.display = 'block';
+            } else {
+                salesSuggestionsDiv.style.display = 'none';
+                currentHighlightIndex = -1;
+            }
+        });
+
+        salesInput.addEventListener('keydown', function(e) {
+            const items = salesSuggestionsDiv.querySelectorAll('div');
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (items.length > 0) {
+                    currentHighlightIndex = (currentHighlightIndex + 1) % items.length;
+                    updateHighlight(items);
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (items.length > 0) {
+                    currentHighlightIndex = currentHighlightIndex <= 0 ? items.length - 1 : currentHighlightIndex - 1;
+                    updateHighlight(items);
+                }
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (currentHighlightIndex >= 0 && items[currentHighlightIndex]) {
+                    items[currentHighlightIndex].click();
+                }
+            }
+        });
+
+        // Engineer Name Autocomplete
+        const engineerInput = document.getElementById('engineerName');
+        const engineerSuggestionsDiv = document.getElementById('engineerSuggestions');
+
+        engineerInput.addEventListener('input', function() {
+            const value = this.value.trim();
+            
+            if (value.length === 0) {
+                engineerSuggestionsDiv.style.display = 'none';
+                currentHighlightIndex = -1;
+                return;
+            }
+
+            const filtered = engineerNames.filter(name => 
+                name.toUpperCase().startsWith(value.toUpperCase())
+            );
+
+            if (filtered.length > 0) {
+                currentActiveDropdown = 'engineer';
+                currentHighlightIndex = -1;
+                engineerSuggestionsDiv.innerHTML = filtered.map((name, index) => {
+                    const matchPart = name.substring(0, value.length);
+                    const restPart = name.substring(value.length);
+                    return `<div data-index="${index}" onclick="selectEngineer('${name}')"><strong>${matchPart}</strong>${restPart}</div>`;
+                }).join('');
+                engineerSuggestionsDiv.style.display = 'block';
+            } else {
+                engineerSuggestionsDiv.style.display = 'none';
+                currentHighlightIndex = -1;
+            }
+        });
+
+        engineerInput.addEventListener('keydown', function(e) {
+            const items = engineerSuggestionsDiv.querySelectorAll('div');
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (items.length > 0) {
+                    currentHighlightIndex = (currentHighlightIndex + 1) % items.length;
+                    updateHighlight(items);
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (items.length > 0) {
+                    currentHighlightIndex = currentHighlightIndex <= 0 ? items.length - 1 : currentHighlightIndex - 1;
+                    updateHighlight(items);
+                }
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (currentHighlightIndex >= 0 && items[currentHighlightIndex]) {
+                    items[currentHighlightIndex].click();
+                }
+            }
+        });
+
+        // Problem Status Autocomplete
+        const statusInput = document.getElementById('problemStatus');
+        const statusSuggestionsDiv = document.getElementById('statusSuggestions');
+
+        statusInput.addEventListener('input', function() {
+            const value = this.value.trim();
+            
+            if (value.length === 0) {
+                statusSuggestionsDiv.style.display = 'none';
+                currentHighlightIndex = -1;
+                return;
+            }
+
+            const filtered = problemStatuses.filter(status => 
+                status.toUpperCase().startsWith(value.toUpperCase())
+            );
+
+            if (filtered.length > 0) {
+                currentActiveDropdown = 'status';
+                currentHighlightIndex = -1;
+                statusSuggestionsDiv.innerHTML = filtered.map((status, index) => {
+                    const matchPart = status.substring(0, value.length);
+                    const restPart = status.substring(value.length);
+                    return `<div data-index="${index}" onclick="selectStatus('${status}')"><strong>${matchPart}</strong>${restPart}</div>`;
+                }).join('');
+                statusSuggestionsDiv.style.display = 'block';
+            } else {
+                statusSuggestionsDiv.style.display = 'none';
+                currentHighlightIndex = -1;
+            }
+        });
+
+        statusInput.addEventListener('keydown', function(e) {
+            const items = statusSuggestionsDiv.querySelectorAll('div');
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (items.length > 0) {
+                    currentHighlightIndex = (currentHighlightIndex + 1) % items.length;
+                    updateHighlight(items);
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (items.length > 0) {
+                    currentHighlightIndex = currentHighlightIndex <= 0 ? items.length - 1 : currentHighlightIndex - 1;
+                    updateHighlight(items);
+                }
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (currentHighlightIndex >= 0 && items[currentHighlightIndex]) {
+                    items[currentHighlightIndex].click();
+                }
+            }
+        });
+
+        function selectSalesPerson(name) {
+            document.getElementById('salesPerson').value = name;
+            salesSuggestionsDiv.style.display = 'none';
+            currentHighlightIndex = -1;
+        }
+
+        function selectEngineer(name) {
+            document.getElementById('engineerName').value = name;
+            engineerSuggestionsDiv.style.display = 'none';
+            currentHighlightIndex = -1;
+        }
+
+        function selectStatus(status) {
+            document.getElementById('problemStatus').value = status;
+            statusSuggestionsDiv.style.display = 'none';
+            currentHighlightIndex = -1;
+        }
+
+        function updateHighlight(items) {
+            items.forEach((item, index) => {
+                if (index === currentHighlightIndex) {
+                    item.classList.add('highlighted');
+                    item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                } else {
+                    item.classList.remove('highlighted');
+                }
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!deviceInput.contains(e.target) && !deviceSuggestionsDiv.contains(e.target)) {
+                deviceSuggestionsDiv.style.display = 'none';
+                currentHighlightIndex = -1;
+            }
+            if (!salesInput.contains(e.target) && !salesSuggestionsDiv.contains(e.target)) {
+                salesSuggestionsDiv.style.display = 'none';
+                currentHighlightIndex = -1;
+            }
+            if (!engineerInput.contains(e.target) && !engineerSuggestionsDiv.contains(e.target)) {
+                engineerSuggestionsDiv.style.display = 'none';
+                currentHighlightIndex = -1;
+            }
+            if (!statusInput.contains(e.target) && !statusSuggestionsDiv.contains(e.target)) {
+                statusSuggestionsDiv.style.display = 'none';
+                currentHighlightIndex = -1;
+            }
+        });
+
+        function addDevice(model) {
+            if (!selectedDevices.includes(model)) {
+                selectedDevices.push(model);
+                updateSelectedDevices();
+            }
+            deviceInput.value = '';
+            deviceSuggestionsDiv.style.display = 'none';
+            deviceInput.focus();
+        }
+
+        function removeDevice(model) {
+            selectedDevices = selectedDevices.filter(d => d !== model);
+            updateSelectedDevices();
+        }
+
+        function updateSelectedDevices() {
+            if (selectedDevices.length === 0) {
+                selectedDevicesDiv.innerHTML = '';
+                hiddenDeviceInput.value = '';
+            } else {
+                selectedDevicesDiv.innerHTML = selectedDevices.map(model => 
+                    `<span class="device-tag">${model}<span class="remove-tag" onclick="removeDevice('${model}')">×</span></span>`
+                ).join('');
+                hiddenDeviceInput.value = selectedDevices.join(',');
+            }
+        }
+
+        function loadEntries() {
+            const today = new Date().toDateString();
+            const saved = localStorage.getItem('dailyWorkEntries');
+            if (saved) {
+                const data = JSON.parse(saved);
+                if (data.date === today) {
+                    entries = data.entries;
+                    if (data.workDate) document.getElementById('workDate').value = data.workDate;
+                    if (data.loginTime) document.getElementById('loginTime').value = data.loginTime;
+                    if (data.logoutTime) document.getElementById('logoutTime').value = data.logoutTime;
+                } else {
+                    entries = [];
+                }
+            }
+            
+            // Set today's date as default
+            if (!document.getElementById('workDate').value) {
+                const today = new Date();
+                const dateString = today.toISOString().split('T')[0];
+                document.getElementById('workDate').value = dateString;
+            }
+            
+            updateDisplay();
+        }
+
+        function saveEntries() {
+            const today = new Date().toDateString();
+            const data = {
+                date: today,
+                entries: entries,
+                workDate: document.getElementById('workDate').value,
+                loginTime: document.getElementById('loginTime').value,
+                logoutTime: document.getElementById('logoutTime').value
+            };
+            localStorage.setItem('dailyWorkEntries', JSON.stringify(data));
+        }
+
+        function formatTime(timeString) {
+            if (!timeString) return '';
+            const [hours, minutes] = timeString.split(':');
+            return `${hours}${minutes} hrs`;
+        }
+
+        function formatDate() {
+            const workDateValue = document.getElementById('workDate').value;
+            if (workDateValue) {
+                const [year, month, day] = workDateValue.split('-');
+                return `${day}/${month}/${year}`;
+            }
+            
+            const today = new Date();
+            const day = String(today.getDate()).padStart(2, '0');
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const year = today.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function generateReport() {
+            const loginTime = formatTime(document.getElementById('loginTime').value);
+            const logoutTime = formatTime(document.getElementById('logoutTime').value);
+            
+            let report = `Date: ${formatDate()}\nLOGIN: ${loginTime}\n`;
+            
+            if (entries.length === 0) {
+                report += `No entries yet.\n`;
+            } else {
+                entries.forEach((entry, index) => {
+                    const locationPart = entry.location ? `, ${entry.location}` : '';
+                    
+                    report += `${index + 1}. ${entry.ispName}${locationPart} - ${entry.phoneNumber}\n`;
+                    
+                    const devices = entry.deviceModel.split(',').map(d => d.trim()).filter(d => d);
+                    devices.forEach(device => {
+                        report += `#${device}\n`;
+                    });
+                });
+            }
+            
+            report += `LOGOUT: ${logoutTime}`;
+            
+            return report;
+        }
+
+        function updateDisplay() {
+            const entriesList = document.getElementById('entriesList');
+            
+            if (entries.length === 0) {
+                entriesList.innerHTML = '<div style="text-align: center; padding: 15px; color: #666; font-size: 13px;">No entries yet</div>';
+            } else {
+                entriesList.innerHTML = entries.map((entry, index) => {
+                    const locationText = entry.location ? `, ${entry.location}` : '';
+                    const deviceList = entry.deviceModel.split(',').map(d => d.trim()).filter(d => d).join(', ');
+                    const deviceSNText = entry.deviceSN ? ` | SN: ${entry.deviceSN}` : '';
+                    const salesPersonText = entry.salesPerson ? ` | Sales: ${entry.salesPerson}` : '';
+                    const engineerText = entry.engineerName ? ` | Engineer: ${entry.engineerName}` : '';
+                    
+                    return `
+                    <div class="entry-item">
+                        <div class="entry-details">
+                            <strong>${entry.ispName}</strong>${locationText} - ${entry.phoneNumber}<br>
+                            <small>Device: ${deviceList}${deviceSNText}${salesPersonText}${engineerText} | Status: ${entry.problemStatus}</small>
+                        </div>
+                        <button class="delete-btn" onclick="deleteEntry(${index})">Delete</button>
+                    </div>
+                `}).join('');
+            }
+            
+            document.getElementById('reportOutput').textContent = generateReport();
+            saveEntries();
+        }
+
+        function deleteEntry(index) {
+            entries.splice(index, 1);
+            updateDisplay();
+        }
+
+        document.getElementById('reportForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const entry = {
+                location: document.getElementById('location').value,
+                ispName: document.getElementById('ispName').value,
+                phoneNumber: document.getElementById('phoneNumber').value,
+                deviceModel: document.getElementById('deviceModel').value,
+                deviceSN: document.getElementById('deviceSN').value,
+                salesPerson: document.getElementById('salesPerson').value,
+                engineerName: document.getElementById('engineerName').value,
+                problemStatus: document.getElementById('problemStatus').value
+            };
+
+            entries.push(entry);
+            updateDisplay();
+            
+            document.getElementById('location').value = '';
+            document.getElementById('ispName').value = '';
+            document.getElementById('phoneNumber').value = '';
+            document.getElementById('deviceModel').value = '';
+            document.getElementById('deviceModelInput').value = '';
+            selectedDevices = [];
+            updateSelectedDevices();
+            document.getElementById('deviceSN').value = '';
+            document.getElementById('salesPerson').value = '';
+            document.getElementById('engineerName').value = '';
+            document.getElementById('problemStatus').value = '';
+        });
+
+        document.getElementById('workDate').addEventListener('change', updateDisplay);
+        document.getElementById('loginTime').addEventListener('change', updateDisplay);
+        document.getElementById('logoutTime').addEventListener('change', updateDisplay);
+
+        function copyReport() {
+            const reportText = document.getElementById('reportOutput').textContent;
+            navigator.clipboard.writeText(reportText);
+        }
+
+        function downloadExcel() {
+            if (entries.length === 0) {
+                return;
+            }
+
+            let csvContent = 'Contact,Person/ISP,Device SN,Sales Person,Status,Engineer\n';
+            
+            entries.forEach((entry) => {
+                const engineer = entry.engineerName || '';
+                
+                const row = [
+                    entry.phoneNumber,
+                    `"${entry.ispName}"`,
+                    `"${entry.deviceSN || ''}"`,
+                    entry.salesPerson || '',
+                    entry.problemStatus,
+                    engineer
+                ];
+                csvContent += row.join(',') + '\n';
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            
+            const today = new Date();
+            const dateStr = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
+            const filename = `Report_${dateStr}.csv`;
+            
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        loadEntries();
+    </script>
+</body>
+</html>
